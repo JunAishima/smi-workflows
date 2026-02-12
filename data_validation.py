@@ -10,7 +10,7 @@ def data_validation(uid, beamline_acronym="smi"):
     logger = get_run_logger()
     api_key = Secret.load("tiled-smi-api-key", _sync=True).get()
     tiled_client = from_profile("nsls2", api_key=api_key)
-    run_client = tiled_client[beamline_acronym]["raw"][uid]
+    run_client = tiled_client[beamline_acronym]["migration"][uid]
     logger.info(f"Validating uid {uid}")
     start_time = ttime.monotonic()
     validate(run_client, fix_errors=True, try_reading=True, raise_on_error=True)
