@@ -1,28 +1,18 @@
 from prefect import task, flow, get_run_logger
 from prefect.blocks.system import Secret
+from bluesky_tiled_plugins.writing.validator import validate
 import time as ttime
 from tiled.client import from_profile
 
 
-@task(retries=2, retry_delay_seconds=10)
-def read_all_streams(uid, beamline_acronym):
+@flow(retries=2, retry_delay_seconds=10)
+def data_validation(uid, beamline_acronym="smi"):
     logger = get_run_logger()
     api_key = Secret.load("tiled-smi-api-key", _sync=True).get()
     tiled_client = from_profile("nsls2", api_key=api_key)
-    run = tiled_client[beamline_acronym]["raw"][uid]
+    run_client = tiled_client[beamline_acronym]["raw"][uid]
     logger.info(f"Validating uid {uid}")
     start_time = ttime.monotonic()
-    for stream in run:
-        logger.info(f"{stream}:")
-        stream_start_time = ttime.monotonic()
-        stream_data = run[stream].read()
-        stream_elapsed_time = ttime.monotonic() - stream_start_time
-        logger.info(f"{stream} elapsed_time = {stream_elapsed_time}")
-        logger.info(f"{stream} nbytes = {stream_data.nbytes:_}")
+    validate(run_client, fix_errors=True, try_reading=True, raise_on_error=True)
     elapsed_time = ttime.monotonic() - start_time
-    logger.info(f"{elapsed_time = }")
-
-
-@flow
-def data_validation(uid):
-    read_all_streams(uid, beamline_acronym="smi")
+    logger.info(f"Finished validating data; {elapsed_time = }")
