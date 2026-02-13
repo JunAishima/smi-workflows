@@ -24,11 +24,12 @@ def data_validation(uid, beamline_acronym="smi"):
     tiled_client = from_profile("nsls2", api_key=api_key)
     run_client = tiled_client[beamline_acronym]["migration"][uid]
     run_client_raw = tiled_client[beamline_acronym]["raw"][uid]
-    logger.info(f"Validating uid {uid}")
+    logger.info(f"Launching tasks to check streams and validate uid {uid}")
     start_time = ttime.monotonic()
-    check_stream(run_client_raw)
+    check_stream_task = check_stream.submit(run)
+    validate_task = validate.submit(run_client, fix_errors=True, try_reading=True, raise_on_error=True)
+    logger.info("Waiting for tasks to complete")
+    check_stream_task.result()
+    validate_task.result()
     elapsed_time = ttime.monotonic() - start_time
-    logger.info(f"Finished checking raw stream; {elapsed_time = }")
-    validate(run_client, fix_errors=True, try_reading=True, raise_on_error=True)
-    elapsed_time = ttime.monotonic() - start_time
-    logger.info(f"Finished validating data; total {elapsed_time = }")
+    logger.info(f"Finished checking and validating data; total {elapsed_time = }")
