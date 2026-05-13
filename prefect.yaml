@@ -9,8 +9,8 @@ pull:
   - prefect.deployments.steps.set_working_directory:
       directory: /repo
   - prefect.deployments.steps.git_clone:
-      repository: https://github.com/nsls2/smi-workflows.git
-      branch: main
+      repository: https://github.com/junaishima/smi-workflows.git
+      branch: add-slack-messaging-fix-api-key
 
 deployments:
   - name: smi-end-of-run-workflow-docker
@@ -24,7 +24,7 @@ deployments:
     schedule: {}
     work_pool:
       job_variables:
-        image: ghcr.io/nsls2/smi-workflows:main
+        image: ghcr.io/junaishima/smi-workflows:add-slack-messaging-fix-api-key
         image_pull_policy: Always
         network: slirp4netns
         volumes:
